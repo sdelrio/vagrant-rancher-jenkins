@@ -1,0 +1,46 @@
+- hosts: localhost
+  remote_user: vagrant
+  serial: 1
+  vars:
+      rancher_agent_image: rancher/agent:v1.0.2
+      rancher_server: 192.168.33.10
+      rancher_port: 8081
+      rancher_project: 1a5
+  tasks:
+    - name: install http2
+      apt:
+         name=python-httplib2
+
+    - name: Return the registration token URL of Rancher server
+      action: uri
+          method=POST
+          status_code=201
+          url="http://{{rancher_server}}:{{rancher_port}}/v1/registrationtokens?projectId={{rancher_project}}"
+          return_content=yes
+      retries: 3
+      delay: 5
+      register: rancher_token_url
+
+    - name: Return the registration URL of Rancher server
+      action: uri
+          method=GET
+          url={{ rancher_token_url.json['links']['self'] }}
+          return_content=yes
+      register: rancher_token
+
+    - name: Check if the rancher-agent is running
+      command: docker ps -a
+      register: containers
+
+    - name: Register the Host machine with the Rancher server
+      docker:
+          image: "{{ rancher_agent_image }}"
+          privileged: yes
+          detach: True
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /var/lib/rancher:/var/lib/rancher
+          command: "{{ rancher_token.json['registrationUrl'] }}"
+          state: started
+      when: "{{ 'rancher-agent' not in containers.stdout }}"
+

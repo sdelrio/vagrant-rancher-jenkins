@@ -1,0 +1,7 @@
+- hosts: localhost
+  remote_user: vagrant
+  serial: 1
+  vars:
+    rancher_version: latest
+  roles:
+    - rancher-server

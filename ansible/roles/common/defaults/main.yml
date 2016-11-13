@@ -1,0 +1,3 @@
+obsolete_services:
+  - puppet
+  - chef-client

@@ -1,0 +1,13 @@
+#ip: "{{ facter_ipaddress_eth1 }}"
+registry: 192.168.33.10:5000
+registry_mirror: 192.168.33.10:5001
+registry_url: 192.168.33.10:5000/
+jenkins_ip: 192.168.33.10
+jenkins_port: 8080
+jenkins_swarm_executors: 2
+debian_version: trusty
+docker_cfg: docker.cfg
+docker_cfg_dest: /etc/default/docker
+jenkins_version: alpine 
+registry_host_dir: /vagrant/registry
+skip_ui: true

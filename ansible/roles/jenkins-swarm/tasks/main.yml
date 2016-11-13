@@ -1,0 +1,17 @@
+---
+- name: Jenkins swarm
+  docker:
+   name: jenkins_swarm
+   image: blacklabelops/jenkins-swarm
+   restart_policy: unless-stopped
+   restart_policy_retry: 3
+   env:
+      SWARM_MASTER_URL: "http://{{ jenkins_ip }}:{{ jenkins_port }}"
+      SWARM_CLIENT_NAME: "{{ ansible_hostname }}"
+      SWARM_CLIENT_EXECUTORS: "{{ jenkins_swarm_executors }}"
+   volumes:
+      - /usr/lib/x86_64-linux-gnu/libltdl.so.7:/usr/lib64/libltdl.so.7
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /etc/docker:/etc/docker
+
