@@ -1,0 +1,6 @@
+rancher_version: stable
+rancher_data_dir: /vagrant/rancher-server
+configs: [
+  { dir: "{{ rancher_data_dir }}", mode: "0777" }
+]
+

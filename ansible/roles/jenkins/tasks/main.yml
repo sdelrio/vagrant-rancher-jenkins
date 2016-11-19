@@ -1,0 +1,61 @@
+---
+- name: Container is running
+  docker:
+    name: jenkins
+    image: "blacklabelops/jenkins:{{ jenkins_version }}"
+    ports:
+        - "{{ jenkins_port}}:8080"
+        - "50000:50000"
+    restart_policy: unless-stopped
+    restart_policy_retry: 3
+      #- /vagrant/jenkins:/var/jenkins_home
+    volumes:
+      - /vagrant/jenkins:/jenkins
+      - /vagrant/.vagrant/machines:/machines
+    env:
+      JAVA_VM_PARAMETERS: -Xmx1024m -Xms512m
+      JENKINS_MASTER_EXECUTORS: 0
+      JENKINS_PLUGINS: swarm
+
+  register: container_result
+  tags: [jenkins]
+
+- name: Wait Jenkins start
+  uri:
+    url: "http://localhost:{{ jenkins_port }}"
+    status_code: 200
+  register: jenkins_started
+  until: jenkins_started.status == 200
+  retries: 6
+  delay: 10
+
+- name: Wait for plugins download
+  wait_for:
+    path: /vagrant/jenkins/plugins/{{ item }}.jpi
+  with_items: "{{plugins}}"
+  tags: [jenkins]
+
+- name: Wait for plugins to be installed
+  uri:
+    url: "http://localhost:{{ jenkins_port }}/updateCenter/installStatus"
+    return_content: yes
+  register: plugin_status
+  until: "'Pending' not in plugin_status.json.data.jobs|map(attribute='installStatus')"
+  retries: 60
+  delay: 10
+  tags: [jenkins]
+
+- name: Check if restart needed
+  uri:
+    url: "http://localhost:{{ jenkins_port }}/updateCenter/api/json?tree=restartRequiredForCompletion"
+    return_content: yes
+  register: jenkins_restart_required
+  tags: [jenkins]
+
+- name: Restart Jenkins to activate new plugins
+  docker:
+    name: jenkins
+    state: restarted
+  when: jenkins_restart_required.json.restartRequiredForCompletion|bool
+  tags: [jenkins]
+
