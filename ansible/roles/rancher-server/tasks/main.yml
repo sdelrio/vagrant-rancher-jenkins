@@ -1,0 +1,25 @@
+---
+- name: Directories are created
+  file:
+    path: "{{ item.dir }}"
+    mode: "{{ item.mode }}"
+    recurse: yes
+    state: directory
+  with_items: "{{ configs }}"
+  tags: [rancher-server]
+
+- name: Container is running
+  docker:
+    name: rancher-server
+    restart_policy: unless-stopped
+    image: "rancher/server:{{ rancher_version }}"
+    ports: 8081:8080
+    volumes:
+      - "{{ rancher_data_dir }}:/var/lib/mysql"
+  register: container_result
+  tags: [rancher-server]
+
+- pause: seconds=20
+  when: container_result|changed
+  tags: [rancher-server]
+
