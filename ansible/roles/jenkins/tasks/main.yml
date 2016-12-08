@@ -55,6 +55,20 @@
 - name: Restart Jenkins to activate new plugins
   docker:
     name: jenkins
+    image: "blacklabelops/jenkins:{{ jenkins_version }}"
+    ports:
+        - "{{ jenkins_port}}:8080"
+        - "50000:50000"
+    restart_policy: unless-stopped
+    restart_policy_retry: 3
+      #- /vagrant/jenkins:/var/jenkins_home
+    volumes:
+      - /vagrant/jenkins:/jenkins
+      - /vagrant/.vagrant/machines:/machines
+    env:
+      JAVA_VM_PARAMETERS: -Xmx1024m -Xms512m
+      JENKINS_MASTER_EXECUTORS: 0
+      JENKINS_PLUGINS: swarm
     state: restarted
   when: jenkins_restart_required.json.restartRequiredForCompletion|bool
   tags: [jenkins]

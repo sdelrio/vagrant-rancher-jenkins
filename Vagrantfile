@@ -24,7 +24,7 @@ Vagrant.configure(2) do |config|
     d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
     d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/cd.yml -c local"
     d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/rancher-server.yml -c local"
-    d.vm.synced_folder "./jenkins", "/data/jenkins"
+    d.vm.synced_folder "./jenkins", "/data/jenkins", create: true
     d.vm.synced_folder "./.vagrant/machines", "/machines"
     d.vm.provider "virtualbox" do |v|
       v.memory = 2048
